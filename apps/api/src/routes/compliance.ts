@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { repo } from '../lib/repo';
 import { requireRole } from '../middleware/auth';
-import type { ApiResponse, ComplianceThreshold } from '@AyuTrace/shared-types';
+//import type { ApiResponse, ComplianceThreshold } from '@AyuTrace/shared-types';
 
 export const complianceRouter = Router();
 
@@ -14,7 +14,8 @@ export const complianceRouter = Router();
  *     security:
  *       - BearerAuth: []
  */
-complianceRouter.get('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async (req, res) => {
+complianceRouter.get('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async (req: { query: { testType: any; }; }, res: { json: (arg0: { success: boolean; data: any[]; }) => void; status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; error: any; }): void; new(): any; }; }; }) => {
+
   try {
     const { testType } = req.query;
     
@@ -37,7 +38,8 @@ complianceRouter.get('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async (
  *     security:
  *       - BearerAuth: []
  */
-complianceRouter.post('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async (req, res) => {
+complianceRouter.post('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async (req: { body: { testType: any; parameter: any; min: any; max: any; unit: any; regulatoryBody: any; standard: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; data?: any; error?: any; }): void; new(): any; }; }; }) => {
+
   try {
     const { testType, parameter, min, max, unit, regulatoryBody, standard } = req.body;
     
@@ -68,7 +70,8 @@ complianceRouter.post('/thresholds', requireRole(["REGULATOR", "ADMIN"]), async 
  *     security:
  *       - BearerAuth: []
  */
-complianceRouter.get('/flags', requireRole(["REGULATOR", "ADMIN"]), async (req, res) => {
+complianceRouter.get('/flags', requireRole(["REGULATOR", "ADMIN"]), async (req: { query: { testType: any; }; }, res: { json: (arg0: { success: boolean; data: any; }) => void; status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; error: any; }): void; new(): any; }; }; }) => {
+
   try {
     const { testType } = req.query;
     
@@ -91,7 +94,8 @@ complianceRouter.get('/flags', requireRole(["REGULATOR", "ADMIN"]), async (req, 
  *     security:
  *       - BearerAuth: []
  */
-complianceRouter.get('/report', requireRole(["REGULATOR", "ADMIN"]), async (req, res) => {
+complianceRouter.get('/report', requireRole(["REGULATOR", "ADMIN"]), async (req: { params: { lotId: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { success: boolean; error: any; }): void; new(): any; }; }; json: (arg0: { success: boolean; data: { lot: { id: any; name: any; species: any; status: any; }; collection: { totalEvents: number; organicCertified: number; wildHarvested: number; }; processing: { totalEvents: number; processTypes: any[]; }; qualityTests: { totalTests: number; passed: number; failed: number; conditional: number; testTypes: any[]; }; complianceStatus: { isCompliant: boolean; missingTests: string[]; }; generatedAt: string; }; }) => void; }) => {
+
   try {
     const { lotId } = req.params;
     
