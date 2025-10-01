@@ -1,0 +1,173 @@
+// Prisma schema for Ayurvedic herbal traceability
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  COLLECTOR
+  PROCESSOR
+  LAB
+  MANUFACTURER
+  REGULATOR
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hash
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Lot {
+  id                String   @id @default(cuid())
+  name              String
+  species           String
+  originRegion      String
+  status            String   @default("collected") // collected, processing, tested, approved, rejected, packed
+  currentQuantityKg Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  collectionEvents  CollectionEvent[]
+  processingEvents  ProcessingEvent[]
+  qualityTests      QualityTestEvent[]
+  packs             Pack[]
+  blockchainEntries BlockchainEntry[]
+}
+
+model CollectionEvent {
+  id                String   @id @default(cuid())
+  lotId             String
+  collectorId       String
+  species           String
+  commonName        String
+  partUsed          String
+  quantityKg        Float
+  collectionDate    DateTime
+  location          String   // JSON stringified GeoLocation
+  weatherConditions String?
+  soilType          String?
+  wildHarvested     Boolean
+  organicCertified  Boolean
+  fhirMetadata      String   // JSON stringified
+  blockchainTxId    String?
+  createdAt         DateTime @default(now())
+
+  lot Lot @relation(fields: [lotId], references: [id])
+
+  @@index([lotId])
+  @@index([collectorId])
+}
+
+model ProcessingEvent {
+  id               String   @id @default(cuid())
+  lotId            String
+  processorId      String
+  processType      String   // cleaning, drying, grinding, extraction, decoction
+  inputQuantityKg  Float
+  outputQuantityKg Float
+  processDate      DateTime
+  temperature      Float?
+  duration         Int?     // minutes
+  equipment        String?
+  location         String   // JSON stringified GeoLocation
+  fhirMetadata     String   // JSON stringified
+  blockchainTxId   String?
+  createdAt        DateTime @default(now())
+
+  lot Lot @relation(fields: [lotId], references: [id])
+
+  @@index([lotId])
+  @@index([processorId])
+}
+
+model QualityTestEvent {
+  id                  String   @id @default(cuid())
+  lotId               String
+  labId               String
+  testDate            DateTime
+  testType            String   // microbial, heavy-metals, pesticide, potency, authenticity
+  parameters          String   // JSON stringified parameters object
+  overallStatus       String   // pass, fail, conditional
+  certificationNumber String?
+  certificationBody   String?
+  labAccreditation    String?
+  fhirMetadata        String   // JSON stringified
+  blockchainTxId      String?
+  createdAt           DateTime @default(now())
+
+  lot Lot @relation(fields: [lotId], references: [id])
+
+  @@index([lotId])
+  @@index([labId])
+}
+
+model Pack {
+  id               String   @id @default(cuid())
+  lotId            String
+  manufacturerId   String
+  sku              String
+  productName      String
+  batchNumber      String
+  manufactureDate  DateTime
+  expiryDate       DateTime
+  netWeight        String
+  ingredients      String   // JSON stringified array
+  dosage           String?
+  storage          String?
+  ayushLicense     String?
+  gmpCertified     Boolean
+  qrCodeUrl        String
+  fhirMetadata     String   // JSON stringified
+  blockchainTxId   String?
+  createdAt        DateTime @default(now())
+
+  lot Lot @relation(fields: [lotId], references: [id])
+
+  @@index([lotId])
+  @@index([manufacturerId])
+  @@index([batchNumber])
+}
+
+model ComplianceThreshold {
+  id             String   @id @default(cuid())
+  testType       String
+  parameter      String
+  min            Float?
+  max            Float?
+  unit           String
+  regulatoryBody String
+  standard       String
+  createdAt      DateTime @default(now())
+
+  @@index([testType])
+}
+
+model BlockchainEntry {
+  txId         String   @id @default(cuid())
+  timestamp    DateTime @default(now())
+  eventType    String   // collection, processing, quality-test, pack-mint
+  eventId      String
+  lotId        String
+  previousTxId String?
+  hash         String
+  participants String   // JSON stringified array
+  data         String   // JSON stringified event data
+  cordaFlowId  String?
+
+  lot Lot @relation(fields: [lotId], references: [id])
+
+  @@index([lotId])
+  @@index([eventId])
+}
